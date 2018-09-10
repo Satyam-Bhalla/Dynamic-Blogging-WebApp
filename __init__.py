@@ -2,10 +2,11 @@ from flask import Flask, request, render_template, redirect, session, flash, url
 from flask_pymongo import PyMongo
 from pymongo import MongoClient
 import datetime
+import re
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'HelloWorld'
-client = MongoClient('mongodb://***********************')
+client = MongoClient('mongodb://*********************')
 db = client['blog']
 
 posts = db.posts
@@ -106,8 +107,18 @@ def date(d):
 @app.route('/search/', methods=['POST','GET'])
 def search():
 	if request.method == 'POST':
-		document = posts.find_one({'title': data})
-		return render_template('fullpost.html', document=document)
+		data = request.form['search']
+		a = re.compile(str(request.form['search']), re.IGNORECASE)
+		search = posts.find()
+		doc = []
+		for i in search:
+			b = a.findall(i['title'])
+			for j in b:
+				doc.append(i)
+
+		return render_template('tags.html', doc=doc)
+
+	return redirect(url_for('index'))
 
 if __name__ == '__main__':
 	app.run(debug=True)
